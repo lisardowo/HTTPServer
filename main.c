@@ -6,14 +6,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#define port 6767
+#define port 6769
+char buffer[1024];
+const char serverResponse[] = "HTTP/1.1 200 OK\r\n"
+                              "Content-Type: text/html; charset=UTF-8\r\n"
+                              "Content-Length: 53\r\n"
+                              "Connection: close\r\n"
+                              "\r\n"
+                              "<!DOCTYPE html><html><body><h1>chinga tu madre "
+                              "nigga siseven</h1></body></html>";
 
 bool errorChecker(int toCheck);
 
 int main() {
 
+  struct sockaddr_in addres;
+
   int socketFd = socket(AF_INET, SOCK_STREAM, 0);
+  // socklen_t addrlen = sizeof(addres);
 
   if (errorChecker(socketFd)) {
     perror("Socket creation failed\n");
@@ -22,7 +35,8 @@ int main() {
 
   printf("socket Created succesfully\n");
 
-  struct sockaddr_in addres;
+  int opt = 1;
+  setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
   addres.sin_family = AF_INET;
   addres.sin_port = htons(port);
@@ -42,8 +56,37 @@ int main() {
 
   printf("server listening at %d\n", port);
 
+  int clientFd = -1;
+
   for (;;) {
+    struct sockaddr_in clientAddr;
+    socklen_t addrlen = sizeof(clientAddr);
+
+    int clientFd = accept(socketFd, (struct sockaddr *)&addres, &addrlen);
+
+    if (errorChecker(clientFd)) {
+      perror("accept failed\n");
+      continue;
+    }
+
+    memset(buffer, 0, sizeof(buffer));
+    ssize_t receivedPayload = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
+
+    if (receivedPayload > 0) {
+      printf(" === Received Request ===\n%s\n", buffer);
+
+      send(clientFd, serverResponse, strlen(serverResponse), 0);
+    }
+    close(clientFd);
+    clientFd = -1;
   }
+
+  printf("closing connections/servers\n");
+
+  if (clientFd >= 0) {
+    close(clientFd);
+  }
+  close(socketFd);
 
   return 0;
 }
