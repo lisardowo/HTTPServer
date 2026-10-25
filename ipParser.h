@@ -7,6 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ipParser.h"
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
 typedef struct {
   uint8_t version_IHL;
   uint8_t tos;

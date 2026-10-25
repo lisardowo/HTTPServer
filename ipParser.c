@@ -1,10 +1,5 @@
 
 #include "ipParser.h"
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <stdint.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 
 _Static_assert(sizeof(ipv4Header_t) == 20,
                "IPv4 header must be at least 20 bytes");
