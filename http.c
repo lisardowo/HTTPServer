@@ -11,6 +11,37 @@ const char serverResponse[] = "HTTP/1.1 200 OK\r\n"
                               "<!DOCTYPE html><html><body><h1>this comes from"
                               "http sv</h1></body></html>";
 
+void sendFile(int clientSocket, const char *filePath, const char *contentType) {
+  FILE *file = fopen(filePath, "rb");
+  if (file == NULL) {
+    // 404 if file not exist
+    const char *notFound =
+        "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+    send(clientSocket, notFound, strlen(notFound), 0);
+    return;
+  }
+
+  fseek(file, 0, SEEK_END);
+  long fileSize = ftell(file);
+  fseek(file, 0, SEEK_SET);
+
+  char header[512];
+  snprintf(header, sizeof(header),
+           "HTTP/1.1 200 OK\r\n"
+           "Content-Type: %s\r\n"
+           "Content-Length: %ld\r\n"
+           "Connection: close\r\n\r\n",
+           contentType, fileSize);
+
+  send(clientSocket, header, strlen(header), 0);
+
+  int fileFd = open(filePath, O_RDONLY);
+  off_t offset = 0;
+
+  sendfile(clientSocket, fileFd, &offset, fileSize);
+  close(fileFd);
+}
+
 void startHttp() {
   int socketFd = socket(AF_INET, SOCK_STREAM, 0);
   // socklen_t addrlen = sizeof(addres);
@@ -83,4 +114,9 @@ bool errorChecker(int toCheck) {
     return false;
   }
   return true;
+}
+
+int main() {
+  startHttp();
+  return 0;
 }
