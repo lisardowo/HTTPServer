@@ -3,13 +3,6 @@
 
 struct sockaddr_in addres;
 char buffer[1024];
-const char serverResponse[] = "HTTP/1.1 200 OK\r\n"
-                              "Content-Type: text/html; charset=UTF-8\r\n"
-                              "Content-Length: 53\r\n"
-                              "Connection: close\r\n"
-                              "\r\n"
-                              "<!DOCTYPE html><html><body><h1>this comes from"
-                              "http sv</h1></body></html>";
 
 void sendFile(int clientSocket, const char *filePath, const char *contentType) {
   FILE *file = fopen(filePath, "rb");
@@ -92,9 +85,9 @@ void startHttp() {
 
     if (receivedPayload > 0) {
       printf(" === Received Request ===\n%s\n", buffer);
-
-      send(clientFd, serverResponse, strlen(serverResponse), 0);
+      sendFile(clientFd, FILE_PATH, "text/html");
     }
+
     close(clientFd);
     clientFd = -1;
   }

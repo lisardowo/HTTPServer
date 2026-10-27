@@ -12,8 +12,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define FILE_PATH "./index.html"
 #define port 6769
-#define INDEX_BUFFER_SIZE 4096
 
 void startHttp();
 bool errorChecker(int toCheck);
